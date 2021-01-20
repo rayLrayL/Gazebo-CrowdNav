@@ -1,4 +1,6 @@
-# CrowdNav
+# Gazebo_CrowdNav
+This repository contains the codes for Gazebo simulations with Crowd Navigation SOTAs with ROS1 support. pc2obs.py read pointcloud from depth camera and subsamples it to voxels of obstacles.
+
 This repository contains the codes for our ICRA 2019 paper. For more details, please refer to the paper
 [Crowd-Robot Interaction: Crowd-aware Robot Navigation with Attention-based Deep Reinforcement Learning](https://arxiv.org/abs/1809.08835).
 

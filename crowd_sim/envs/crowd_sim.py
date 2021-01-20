@@ -8,6 +8,7 @@ from numpy.linalg import norm
 from crowd_sim.envs.utils.human import Human
 from crowd_sim.envs.utils.info import *
 from crowd_sim.envs.utils.utils import point_to_segment_dist
+from crowd_sim.envs.utils.action import ActionRot, ActionXY
 
 
 class CrowdSim(gym.Env):
@@ -47,6 +48,11 @@ class CrowdSim(gym.Env):
         self.states = None
         self.action_values = None
         self.attention_weights = None
+        # start position of robot
+        self.start_x = None
+        self.start_y = None
+        self.goal_x = None
+        self.goal_y = None
 
     def configure(self, config):
         self.config = config
@@ -57,6 +63,11 @@ class CrowdSim(gym.Env):
         self.collision_penalty = config.getfloat('reward', 'collision_penalty')
         self.discomfort_dist = config.getfloat('reward', 'discomfort_dist')
         self.discomfort_penalty_factor = config.getfloat('reward', 'discomfort_penalty_factor')
+        self.start_x = config.getfloat('sim', 'start_x')
+        self.start_y = config.getfloat('sim', 'start_y')
+        self.goal_x = config.getfloat('sim', 'goal_x')
+        self.goal_y = config.getfloat('sim', 'goal_y')
+        self.theta = config.getfloat('sim', 'theta')
         if self.config.get('humans', 'policy') == 'orca':
             self.case_capacity = {'train': np.iinfo(np.uint32).max - 2000, 'val': 1000, 'test': 1000}
             self.case_size = {'train': np.iinfo(np.uint32).max - 2000, 'val': config.getint('env', 'val_size'),
@@ -67,7 +78,15 @@ class CrowdSim(gym.Env):
             self.circle_radius = config.getfloat('sim', 'circle_radius')
             self.human_num = config.getint('sim', 'human_num')
         else:
-            raise NotImplementedError
+            self.case_capacity = {'train': np.iinfo(np.uint32).max - 2000, 'val': 1000, 'test': 1000}
+            self.case_size = {'train': np.iinfo(np.uint32).max - 2000, 'val': config.getint('env', 'val_size'),
+                              'test': config.getint('env', 'test_size')}
+            self.train_val_sim = config.get('sim', 'train_val_sim')
+            self.test_sim = config.get('sim', 'test_sim')
+            self.square_width = config.getfloat('sim', 'square_width')
+            self.circle_radius = config.getfloat('sim', 'circle_radius')
+            self.human_num = config.getint('sim', 'human_num')
+            # raise NotImplementedError
         self.case_counter = {'train': 0, 'test': 0, 'val': 0}
 
         logging.info('human number: {}'.format(self.human_num))
@@ -217,8 +236,8 @@ class CrowdSim(gym.Env):
         # centralized orca simulator for all humans
         if not self.robot.reached_destination():
             raise ValueError('Episode is not done yet')
-        params = (10, 10, 5, 5)
-        sim = rvo2.PyRVOSimulator(self.time_step, *params, 0.3, 1)
+        params = (10, 10, 1, 1)
+        sim = rvo2.PyRVOSimulator(self.time_step, *params, 0.3, 0.26)
         sim.addAgent(self.robot.get_position(), *params, self.robot.radius, self.robot.v_pref,
                      self.robot.get_velocity())
         for human in self.humans:
@@ -271,7 +290,8 @@ class CrowdSim(gym.Env):
         else:
             counter_offset = {'train': self.case_capacity['val'] + self.case_capacity['test'],
                               'val': 0, 'test': self.case_capacity['val']}
-            self.robot.set(0, -self.circle_radius, 0, self.circle_radius, 0, 0, np.pi / 2)
+            ## CHANGE GOAL
+            self.robot.set(self.start_x, self.start_y, self.goal_x, self.goal_y, 0, 0, self.theta)
             if self.case_counter[phase] >= 0:
                 np.random.seed(counter_offset[phase] + self.case_counter[phase])
                 if phase in ['train', 'val']:
@@ -319,13 +339,24 @@ class CrowdSim(gym.Env):
         Compute actions for all agents, detect collision, update environment and return (ob, reward, done, info)
 
         """
+
+        for agent in [self.robot] + self.humans:
+            agent.time_step = self.time_step
+            agent.policy.time_step = self.time_step
         human_actions = []
+        self.human_times = [0] * len(self.humans)
+        for human in self.humans:
+            human_actions.append(ActionXY(0, 0))
+        #print(human_times)
+
+        '''
         for human in self.humans:
             # observation for humans is always coordinates
             ob = [other_human.get_observable_state() for other_human in self.humans if other_human != human]
             if self.robot.visible:
                 ob += [self.robot.get_observable_state()]
             human_actions.append(human.act(ob))
+            '''
 
         # collision detection
         dmin = float('inf')
@@ -492,7 +523,7 @@ class CrowdSim(gym.Env):
 
             # add robot and its goal
             robot_positions = [state[0].position for state in self.states]
-            goal = mlines.Line2D([0], [4], color=goal_color, marker='*', linestyle='None', markersize=15, label='Goal')
+            goal = mlines.Line2D([self.robot.get_goal_position()[0]], [self.robot.get_goal_position()[1]], color=goal_color, marker='*', linestyle='None', markersize=15, label='Goal')
             robot = plt.Circle(robot_positions[0], self.robot.radius, fill=True, color=robot_color)
             ax.add_artist(robot)
             ax.add_artist(goal)
