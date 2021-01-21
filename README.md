@@ -8,24 +8,8 @@ Please find our more recent work on
 - [Relational Graph Learning for Crowd Navigation](https://github.com/ChanganVR/RelationalGraphLearning).
 - [Social NCE: Contrastive Learning of Socially-aware Motion Representations](https://github.com/vita-epfl/social-nce).
 
-## Abstract
-Mobility in an effective and socially-compliant manner is an essential yet challenging task for robots operating in crowded spaces.
-Recent works have shown the power of deep reinforcement learning techniques to learn socially cooperative policies.
-However, their cooperation ability deteriorates as the crowd grows since they typically relax the problem as a one-way Human-Robot interaction problem.
-In this work, we want to go beyond first-order Human-Robot interaction and more explicitly model Crowd-Robot Interaction (CRI).
-We propose to (i) rethink pairwise interactions with a self-attention mechanism, and
-(ii) jointly model Human-Robot as well as Human-Human interactions in the deep reinforcement learning framework.
-Our model captures the Human-Human interactions occurring in dense crowds that indirectly affects the robot's anticipation capability.
-Our proposed attentive pooling mechanism learns the collective importance of neighboring humans with respect to their future states.
-Various experiments demonstrate that our model can anticipate human dynamics and navigate in crowds with time efficiency,
-outperforming state-of-the-art methods.
-
-
-## Method Overview
-<img src="https://i.imgur.com/YOPHXD1.png" width="1000" />
-
 ## Setup
-1. Install [Python-RVO2](https://github.com/sybrenstuvel/Python-RVO2) library
+1. Install [Python-RVO2](https://github.com/ktk1501/Python-RVO2) library. (Must build the repository in this link, there are additional functions)
 2. Install crowd_sim and crowd_nav into pip
 ```
 pip install -e .
