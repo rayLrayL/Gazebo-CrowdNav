@@ -11,7 +11,6 @@ import sys
 import rospy
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2, CompressedImage, PointField
-from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
 from std_msgs.msg import String, Header
@@ -24,7 +23,6 @@ global depth_scale, ROW, COL
 global currentStatus
 
 rospy.init_node('pc2obs', anonymous=False)
-pub_state = rospy.Publisher("robot_state", Twist, queue_size=1)
 
 #size of images
 COL= 480
@@ -108,12 +106,7 @@ def state_callback(data):
 	global robot_state
 	q = data.pose.pose.orientation
 	yaw = euler_from_quaternion(q.x, q.y, q.z, q.w)
-	twist = Twist()
-	twist.linear.x = data.pose.pose.position.x
-	twist.linear.y = data.pose.pose.position.y
-	twist.angular.z = yaw
-	# pub_state.publish(twist)
-	robot_state = [-twist.linear.y, twist.linear.x, twist.angular.z]
+	robot_state = [-data.pose.pose.position.y, data.pose.pose.position.x, -yaw]
 
 def listener():
 	rospy.Subscriber("/camera/depth/points", PointCloud2, points_callback)

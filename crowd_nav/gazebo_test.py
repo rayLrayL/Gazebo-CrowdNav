@@ -31,8 +31,9 @@ pc2obs.pc2obs_init()
 voxel_size = 0.45
 
 #ROBOT MOVE
-SPEED = 10# 14
-ROTATE_SPEED = 5 # 25
+SPEED = 15# 14
+ROTATE_SPEED = 15 # 15
+ANGULAR_SPEED = 0.2
 
 def GoEasy(direc):
 	if direc == 4: # Backward
@@ -139,7 +140,7 @@ def main():
             # rotate and shift obs position
             t2 = time.time()
             yaw = robot_state[2]
-            rot_matrix = np.array([[math.cos(yaw), -math.sin(yaw)], [math.sin(yaw), math.cos(yaw)]])
+            rot_matrix = np.array([[math.cos(yaw), math.sin(yaw)], [-math.sin(yaw), math.cos(yaw)]])
             #samples = np.array([sample + robot_state[0:2] for sample in samples[:,0:2]])
 
             if len(samples) == 1:
@@ -164,7 +165,7 @@ def main():
                 env.humans.append(human)
                 obs.append(ObservableState(robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2))
             robot.set_position(robot_state)
-            robot.set_velocity([-math.sin(yaw), math.cos(yaw)])
+            robot.set_velocity([math.sin(yaw), math.cos(yaw)])
             #print(obs)
             action = robot.act(obs)
             obs, _, done, info = env.step(action)
@@ -175,22 +176,28 @@ def main():
             last_pos = current_pos
             policy_time += time.time()-t1
             numFrame += 1
-            print(t2-t1, time.time() - t2)
+            #print(t2-t1, time.time() - t2)
 
-            # opposite axis 
-            diff_angle = (yaw + math.atan2(current_vel[0], current_vel[1]))
-            print("diff_angle: {}, {}, {}".format(diff_angle, yaw ,-math.atan2(current_vel[0], current_vel[1])))
+            diff_angle = (-yaw + math.atan2(current_vel[0], current_vel[1]))
+            #print("diff_angle: {}, {}, {}".format(diff_angle, yaw ,-math.atan2(current_vel[0], current_vel[1])))
             if diff_angle < -0.7:
                 direc = 2 # turn left
             elif diff_angle > 0.7:
                 direc = 3 # turn right
             else:
                 direc = 1 # go straight
-            GoEasy(direc)
+            # GoEasy(direc)
+            vx = SPEED * math.sqrt(current_vel[0]**2+current_vel[1]**2) * 4
+            if diff_angle > 0:
+                v_ang = ANGULAR_SPEED * min(diff_angle/(math.pi/2), 1) 
+            else:
+                v_ang = ANGULAR_SPEED * max(diff_angle/(math.pi/2), -1)
+            print(vx, -v_ang)
+            easyGo.mvCurve(vx, -v_ang)
             if args.plot:
                 plt.scatter(current_pos[0], current_pos[1], label='robot')
                 plt.arrow(current_pos[0], current_pos[1], current_vel[0], current_vel[1], width=0.05, fc='g', ec='g')
-                plt.arrow(current_pos[0], current_pos[1], -math.sin(yaw), math.cos(yaw), width=0.05, fc='r', ec='r')
+                plt.arrow(current_pos[0], current_pos[1], math.sin(yaw), math.cos(yaw), width=0.05, fc='r', ec='r')
                 if len(samples) == 1:
                     plt.scatter(samples[0][0], samples[0][1], label='obstacles')
                 elif len(samples) > 1:
