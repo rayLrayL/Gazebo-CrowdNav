@@ -28,12 +28,16 @@ import easyGo
 
 print("init pc2obs")
 pc2obs.pc2obs_init()
-voxel_size = 0.45
+voxel_size = 0.6
 
 #ROBOT MOVE
 SPEED = 15# 14
-ROTATE_SPEED = 15 # 15
-ANGULAR_SPEED = 0.2
+ROTATE_SPEED = 25 # 15
+ANGULAR_SPEED = 0.5
+
+# Set goal position
+GOAL_X = 0
+GOAL_Y = 3
 
 def GoEasy(direc):
 	if direc == 4: # Backward
@@ -123,20 +127,27 @@ def main():
 
     policy.set_env(env)
     robot.print_info()
-    
+
     if args.visualize:
+
         obs = env.reset(args.phase, args.test_case)
         done = False
         last_pos = np.array(robot.get_position())
         policy_time = 0.0
         numFrame = 0
-        while True:
+
+        dist = 20.0
+        obs_flg = 0
+
+        while (dist > 0.8):
             t1 = time.time()
             env.humans = []
             samples, robot_state = pc2obs.pc2obs(voxel_size = voxel_size)
             if type(samples) == type(False):
                 print("Not Connect")
                 continue
+            dist = math.sqrt((GOAL_X - robot_state[0])**2 + (GOAL_Y - robot_state[1])**2)
+            print("dist: {}".format(dist))
             # rotate and shift obs position
             t2 = time.time()
             yaw = robot_state[2]
@@ -161,9 +172,9 @@ def main():
                 obs.append(ObservableState(ob[0], ob[1], 0, 0, voxel_size/2))
             if len(obs_position_list) == 0:
                 human = Human(env.config, 'humans')
-                human.set(robot_state[0]+10, robot_state[1]+10, robot_state[0]+10, robot_state[1]+10, 0, 0, 0)
+                human.set(0, -10, 0, -10 , 0, 0, 0)
                 env.humans.append(human)
-                obs.append(ObservableState(robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2))
+                obs.append(ObservableState(0, -10, 0, 0, voxel_size/2))
             robot.set_position(robot_state)
             robot.set_velocity([math.sin(yaw), math.cos(yaw)])
             #print(obs)
@@ -187,9 +198,9 @@ def main():
             else:
                 direc = 1 # go straight
             # GoEasy(direc)
-            vx = SPEED * math.sqrt(current_vel[0]**2+current_vel[1]**2) * 4
+            vx = SPEED * math.sqrt(current_vel[0]**2+current_vel[1]**2)
             if diff_angle > 0:
-                v_ang = ANGULAR_SPEED * min(diff_angle/(math.pi/2), 1) 
+                v_ang = ANGULAR_SPEED * min(diff_angle/(math.pi/2), 1)
             else:
                 v_ang = ANGULAR_SPEED * max(diff_angle/(math.pi/2), -1)
             print(vx, -v_ang)
@@ -202,8 +213,8 @@ def main():
                     plt.scatter(samples[0][0], samples[0][1], label='obstacles')
                 elif len(samples) > 1:
                     plt.scatter(samples[:,0], samples[:,1], label='obstacles')
-                plt.xlim(-5,5)
-                plt.ylim(0,10)
+                plt.xlim(-6.5,6.5)
+                plt.ylim(-9,4)
                 plt.legend()
                 plt.title("gazebo test")
                 plt.xlabel("x (m)")
@@ -211,6 +222,8 @@ def main():
                 plt.pause(0.001)
                 plt.cla()
                 plt.clf()
+        easyGo.stop()
+        plt.close()
         print("Average took {} sec per iteration, {} Frame".format(policy_time/numFrame, numFrame))
         if args.traj:
             env.render('traj', args.video_file)
