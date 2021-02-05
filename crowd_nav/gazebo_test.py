@@ -180,14 +180,14 @@ def main():
             if len(obs_position_list) == 0:
                 human = Human(env.config, 'humans')
                 # SARL, CADRL
-                # human.set(0, -10, 0, -10 , 0, 0, 0)
+                human.set(0, -10, 0, -10 , 0, 0, 0)
                 # LSTM
-                human.set(robot_state[0]+10, robot_state[1]+10, robot_state[0]+10, robot_state[1]+10 , 0, 0, 0)
+                #human.set(robot_state[0]+10, robot_state[1]+10, robot_state[0]+10, robot_state[1]+10 , 0, 0, 0)
                 env.humans.append(human)
                 # SARL, CADRL
-                # human.set(robot_state[0]+10, robot_state[1]+10, robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2)
+                obs.append(ObservableState(0, -10, 0, 0, voxel_size/2))
                 # LSTM
-                obs.append(ObservableState(robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2))
+                #obs.append(ObservableState(robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2))
             robot.set_position(robot_state)
             robot.set_velocity([math.sin(yaw), math.cos(yaw)])
             #print(obs)
@@ -240,7 +240,7 @@ def main():
                 plt.cla()
                 plt.clf()
             print("NAV TIME {}".format(float(sim_time)-t1))
-            time.sleep(0.7)
+            time.sleep(0.5)
         print("NAV TIME {}".format(float(sim_time)-t1))
         easyGo.stop()
         plt.close()
