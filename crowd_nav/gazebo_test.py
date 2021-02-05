@@ -28,7 +28,7 @@ import easyGo
 
 print("init pc2obs")
 pc2obs.pc2obs_init()
-voxel_size = 0.6
+voxel_size = 0.3
 
 #ROBOT MOVE
 SPEED = 15# 14
@@ -139,14 +139,21 @@ def main():
         dist = 20.0
         obs_flg = 0
 
+        sim_time = False
+        while sim_time == False:
+            samples, robot_state, sim_time = pc2obs.pc2obs(voxel_size = voxel_size)
+        t1 = float(sim_time)
         while (dist > 0.8):
-            t1 = time.time()
+            #t1 = time.time()
             env.humans = []
-            samples, robot_state = pc2obs.pc2obs(voxel_size = voxel_size)
+            samples, robot_state, sim_time = pc2obs.pc2obs(voxel_size = voxel_size)
             if type(samples) == type(False):
                 print("Not Connect")
                 continue
             dist = math.sqrt((GOAL_X - robot_state[0])**2 + (GOAL_Y - robot_state[1])**2)
+            if obs_flg == 0 and dist < 10:
+                os.system('sh ./init.sh')
+                obs_flg = 1
             print("dist: {}".format(dist))
             # rotate and shift obs position
             t2 = time.time()
@@ -172,9 +179,15 @@ def main():
                 obs.append(ObservableState(ob[0], ob[1], 0, 0, voxel_size/2))
             if len(obs_position_list) == 0:
                 human = Human(env.config, 'humans')
-                human.set(0, -10, 0, -10 , 0, 0, 0)
+                # SARL, CADRL
+                # human.set(0, -10, 0, -10 , 0, 0, 0)
+                # LSTM
+                human.set(robot_state[0]+10, robot_state[1]+10, robot_state[0]+10, robot_state[1]+10 , 0, 0, 0)
                 env.humans.append(human)
-                obs.append(ObservableState(0, -10, 0, 0, voxel_size/2))
+                # SARL, CADRL
+                # human.set(robot_state[0]+10, robot_state[1]+10, robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2)
+                # LSTM
+                obs.append(ObservableState(robot_state[0]+10, robot_state[1]+10, 0, 0, voxel_size/2))
             robot.set_position(robot_state)
             robot.set_velocity([math.sin(yaw), math.cos(yaw)])
             #print(obs)
@@ -222,17 +235,11 @@ def main():
                 plt.pause(0.001)
                 plt.cla()
                 plt.clf()
+            print("NAV TIME {}".format(float(sim_time)-t1))
+        print("NAV TIME {}".format(float(sim_time)-t1))
         easyGo.stop()
         plt.close()
         print("Average took {} sec per iteration, {} Frame".format(policy_time/numFrame, numFrame))
-        if args.traj:
-            env.render('traj', args.video_file)
-        else:
-            env.render('video', args.video_file)
-        logging.info('It takes %.2f seconds to finish. Final status is %s', env.global_time, info)
-        if robot.visible and info == 'reach goal':
-            human_times = env.get_human_times()
-            logging.info('Average time for humans to reach goal: %.2f', sum(human_times) / len(human_times))
     else:
         explorer.run_k_episodes(env.case_size[args.phase], args.phase, print_failure=True)
 
