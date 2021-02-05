@@ -203,6 +203,10 @@ def main():
             #print(t2-t1, time.time() - t2)
 
             diff_angle = (-yaw + math.atan2(current_vel[0], current_vel[1]))
+            if diff_angle > math.pi:
+                diff_angle = diff_angle - 2*math.pi
+            elif diff_angle < - math.pi:
+                diff_angle = diff_angle + 2*math.pi
             #print("diff_angle: {}, {}, {}".format(diff_angle, yaw ,-math.atan2(current_vel[0], current_vel[1])))
             if diff_angle < -0.7:
                 direc = 2 # turn left
@@ -236,6 +240,7 @@ def main():
                 plt.cla()
                 plt.clf()
             print("NAV TIME {}".format(float(sim_time)-t1))
+            time.sleep(0.7)
         print("NAV TIME {}".format(float(sim_time)-t1))
         easyGo.stop()
         plt.close()
