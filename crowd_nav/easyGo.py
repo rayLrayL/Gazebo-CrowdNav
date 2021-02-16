@@ -66,7 +66,6 @@ def mvRotate(speed, angle, clockwise, verbose=0):
 
     #We wont use linear components
 
-
     if angle==-1:
         if clockwise:
             vel_msg.angular.z = -abs(angular_speed)
@@ -90,8 +89,6 @@ def mvRotate(speed, angle, clockwise, verbose=0):
         velocity_publisher.publish(vel_msg)
         t1 = rospy.Time.now().to_sec()
         current_angle = angular_speed*(t1-t0)
-        #print(current_angle)
-
 
     #Forcing our robot to stop
     vel_msg.angular.z = 0
@@ -102,7 +99,6 @@ def mvCurve(x, y, verbose=0):
     global stopper
     # print('easyGo::', str(stopper))
     if stopper == False: return
-    #rospy.init_node('robot_mvs', anonymous=True)
     vel_msg = Twist()
     angular_speed = x*2*PI/360
     vel_msg.linear.x= angular_speed   ###??? x == Robot_speed
@@ -112,8 +108,6 @@ def mvStraight(speed, angle, verbose=0):
     global stopper
     print('easyGo::', str(stopper))
     if stopper == False: return
-    #Starts a new node
-    #rospy.init_node('robot_mvs', anonymous=True)
     vel_msg = Twist()
     angular_speed = speed*2*PI/360
     relative_angle = angle*2*PI/360
@@ -142,18 +136,9 @@ def imu_callback(incomming_msg):
 def encoder_callback(incomming_msg):
     list_orientation = [incomming_msg.linear.x, incomming_msg.linear.y,
                           incomming_msg.linear.z]
-
-    #list_angular =  [incomming_msg.angular.x, incomming_msg.angular.y,
-                           #incomming_msg.angular.z]
-
-
     return list_orientation
 
-
 main()
-
-
-
 
 if __name__ == '__main__':
     try:
@@ -163,22 +148,10 @@ if __name__ == '__main__':
         clockwise = input("Clockwise?: ") #True or false
         # Testing our function
 
-        #rotate(speed, angle, clockwise)
 
         #Verbose = 0 (default) Don;t print status
         #Verbose = 1 Print Everything
         mvStraight(speed, angle, 1)
-
-        '''   Infinity Example ..........break condition DIY
-        t0 = rospy.Time.now().to_sec()
-        while True:
-            mvStraight(velocity_publisher, speed, angle, 1)
-            t1 = rospy.Time.now().to_sec()
-            if t1-t0 > 10:
-                break
-        stop()
-        '''
-
 
     except rospy.ROSInterruptException:
         pass
