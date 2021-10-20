@@ -4,7 +4,7 @@ import numpy as np
 import argparse
 parser = argparse.ArgumentParser(description='arguments')
 parser.add_argument('--name', type=str,
-                    default='dynamic_static_log/cadrl_fail', help='csv file name')
+                    default='no_static', help='csv file name')
 # parser.add_argument('--test', '-t', action='calculate RMSE', help='RMSE values')
 args = parser.parse_args()
 
@@ -73,45 +73,46 @@ if __name__ == '__main__':
     #plt.scatter(0.5, -1.5, marker='o', s=2300, color='tab:blue')
     plt.xlim(-5.7, 5.7)
     plt.ylim(-8.2, 3.2)
-    plt.xlabel('x(m)', fontsize=8)
-    plt.ylabel('y(m)', fontsize=8)
+    plt.xlabel('x(m)', fontsize=13)
+    plt.ylabel('y(m)', fontsize=13)
 
+    SCALE = 0.665
     for idx in range(len(dpoom[0])):
 
         if idx == len(dpoom[0])-1:
             plt.text(dpoom[0][idx], dpoom[1][idx]-0.3,
-                     "{:.2f}".format(idx/2), fontsize=20)
+                     "{:.1f}".format(idx/SCALE), fontsize=20)
         if idx == 16:
             plt.text(dpoom[0][idx], dpoom[1][idx]-0.2,
-                     "{:.2f}".format(idx/2), fontsize=20)
+                     "{:.1f}".format(int(idx/SCALE)), fontsize=20)
         elif idx in np.arange(0, 17, 8):
             plt.text(dpoom[0][idx], dpoom[1][idx],
-                     "{:.2f}".format(idx/2), fontsize=20)
+                     "{:.1f}".format(idx/SCALE), fontsize=20)
     for agent in agents:
         for idx in range(len(agent[0])):
 
-            if idx == len(agent[0])-1:
-                plt.text(agent[0][idx], agent[1][idx]+0.3,
-                         "{:.2f}".format(idx/2), fontsize=18)
+            # if idx == len(agent[0])-1:
+            #     plt.text(agent[0][idx], agent[1][idx]+0.3,
+            #              "{:.1f}".format(idx/SCALE), fontsize=18)
 
-            if idx in np.arange(8, 17, 8):
+            if idx in np.arange(0, 17, 8):
                 if idx == 0:
-                    plt.text(agent[0][idx]-0.3, agent[1][idx]+0.3,
-                             "{:.2f}".format(idx/2), fontsize=18)
+                    plt.text(agent[0][idx]-0.3, agent[1][idx]+0.1,
+                             "{:.1f}".format(idx/SCALE), fontsize=18)
                 elif idx == 16:
-                    plt.text(agent[0][idx], agent[1][idx],
-                             "{:.2f}".format(idx/2), fontsize=18)
+                    plt.text(agent[0][idx]-0.5, agent[1][idx]-0.3,
+                             "{:.1f}".format(int(idx/SCALE)), fontsize=18)
                 else:
 
-                    plt.text(agent[0][idx], agent[1][idx],
-                             "{:.2f}".format(idx/2), fontsize=18)
+                    plt.text(agent[0][idx]-0.5, agent[1][idx]-0.4,
+                             "{:.1f}".format(int(idx/SCALE)), fontsize=18)
     '''
     plt.text(agents[1][0][24], agents[1][1][24],
              "{:.2f}".format(24/2), fontsize=18)
     '''
     print(csv_data[0][2])
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
     plt.tight_layout()
     plt.savefig(args.name+'.jpg', dpi=1000, quality=95, pad_inches=0.0)
     plt.show()
